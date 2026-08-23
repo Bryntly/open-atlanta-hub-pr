@@ -4,7 +4,24 @@ City-string `Atlanta, GA` → `Austin, TX` must email fleet **$5,650** from 3-le
 
 [ERM #425](https://github.com/BRYNTLY-ORG/ERM/pull/425) says keep CI/deploy leftovers as their own stacks. This kit opens **one quote-only PR per app** (Highland hub + SendGrid + moocow-pg).
 
-## Fastest: stacker (reviewable, no remote bash)
+## Fastest: you already have `/Users/pacman/GITHUB_ACTUAL`
+
+ERM #425 was built from that tree. Do **not** `checkout -B` on those dirty checkouts. Worktree:
+
+```bash
+gh repo clone Bryntly/open-atlanta-hub-pr /tmp/hub-kit && cd /tmp/hub-kit
+./stack-from-github-actual.sh
+```
+
+Or, if this kit is already next to the fleet:
+
+```bash
+FLEET_ACTUAL=/Users/pacman/GITHUB_ACTUAL FLEET_SRC=/tmp/fleet-src ./stack-fleet-open-prs.sh
+```
+
+That worktrees into `/tmp/fleet-src` and refuses in-place on GITHUB_ACTUAL.
+
+## If you do not have GITHUB_ACTUAL
 
 ```bash
 gh repo clone Bryntly/open-atlanta-hub-pr /tmp/hub-kit && cd /tmp/hub-kit
@@ -21,4 +38,4 @@ gcloud run jobs execute deploy-ermt --project eastern-royal-callcenter --region 
 
 ## Device login for the Cloud Agent
 
-**0A40-E94D** at https://github.com/login/device (expires ~22:30 UTC). Do not enter expired `C19C-AAF6`.
+**0A40-E94D** at https://github.com/login/device (expires ~22:30 UTC). Prefer the GITHUB_ACTUAL stacker. Do not enter expired `C19C-AAF6`.
