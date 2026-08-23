@@ -3,9 +3,9 @@
 # ERM #425: keep CI/deploy unblockers as their own stacks. Default QUOTE_ONLY=1
 # skips leftover CI/ops/alerts/docs/WIP heads so the quote PR can merge.
 #
-# Open leftovers this stacker will NOT fold (as of 22:10 UTC):
+# Open leftovers this stacker will NOT fold (as of 22:26 UTC):
 #   ERMT      #779 WIP, #770 Gemini CI, #773 Copilot runner
-#   MOO_COW   #1549 ops-ci leftover, #1550 alerts draft leftover
+#   MOO_COW   #1549 ops-ci, #1550 alerts, #1552 warden CI
 #   ERM_FORM  #233 Copilot runner, #232 Gemini CI
 #   ERM       #425 agent-policy docs (stacking rule lives here)
 # Set QUOTE_ONLY=0 to absorb those too. #1545/#1548/#1539/#1551 are closed.
@@ -120,14 +120,15 @@ for repo in "${repo_list[@]}"; do
   mapfile -t prs < <(gh pr list --repo "${ORG}/${repo}" --state open --limit 50 \
     --json number,title,headRefName,url --jq 'sort_by(.number)[] | "\(.number)\t\(.headRefName)\t\(.title)\t\(.url)"')
 
+  printf -v tab '\t'
   for row in "${prs[@]}"; do
     [[ -z "${row}" ]] && continue
-    num="${row%%$'\t'*}"
-    rest="${row#*$'\t'}"
-    head="${rest%%$'\t'*}"
-    rest2="${rest#*$'\t'}"
-    title="${rest2%%$'\t'*}"
-    url="${rest2#*$'\t'}"
+    num="${row%%${tab}*}"
+    rest="${row#*${tab}}"
+    head="${rest%%${tab}*}"
+    rest2="${rest#*${tab}}"
+    title="${rest2%%${tab}*}"
+    url="${rest2#*${tab}}"
     if [[ "${head}" == "${BRANCH}" ]]; then
       echo "SKIP #${num} (already ${BRANCH})"
       continue
@@ -142,7 +143,7 @@ for repo in "${repo_list[@]}"; do
       continue
     fi
     if git -C "${root}" merge --no-ff --no-edit "pr-${num}"; then
-      absorbed_md="${absorbed_md}- [#${num}](${url}) ${title}"$'\n'
+      printf -v absorbed_md '%s- [#%s](%s) %s\n' "${absorbed_md}" "${num}" "${url}" "${title}"
       absorbed_nums="${absorbed_nums} ${num}"
     else
       echo "CONFLICT #${num} — leaving it out of the stack" >&2
