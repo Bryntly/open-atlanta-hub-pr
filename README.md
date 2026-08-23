@@ -1,8 +1,8 @@
 # Stack one quote-pipeline PR per fleet app
 
-City-string `Atlanta, GA` → `Austin, TX` must email fleet **$5,650** from 3-leg total **1864**. Live ERM_FORM `quotex.php` still does that (re-proved 22:42). Newest customer mail is still **22:45** ERM_FORM `1a030cd2e2654f25` at **$5,750** / 930 mi / 15 hr. No Highland / `quote-pipeline-stack-610b` PR yet.
+City-string `Atlanta, GA` → `Austin, TX` must email fleet **$5,650** from 3-leg total **1864**. Live ERM_FORM `quotex.php` still does that (re-proved 23:08). Newest customer mail is still **22:45** ERM_FORM `1a030cd2e2654f25` at **$5,750** / 930 mi / 15 hr. No Highland / `quote-pipeline-stack-610b` PR yet.
 
-[ERM #425](https://github.com/BRYNTLY-ORG/ERM/pull/425) **merged 22:35** — keep CI/deploy leftovers as their own stacks. This kit opens **one quote-only PR per app** (Highland hub + SendGrid + moocow-pg).
+[ERM #425](https://github.com/BRYNTLY-ORG/ERM/pull/425) **merged 22:35** — keep CI/deploy leftovers as their own stacks. This kit opens **one quote-only PR per app** (Highland hub + SendGrid + moocow-pg). The stacker now skips leftover `feat(fleet):` / `fix(ollama):` titles ([GITHUB_WORKFLOW_ACTUAL #413](https://github.com/BRYNTLY-ORG/GITHUB_WORKFLOW_ACTUAL/pull/413) / [#412](https://github.com/BRYNTLY-ORG/GITHUB_WORKFLOW_ACTUAL/pull/412)).
 
 ## Fastest: you already have `/Users/pacman/GITHUB_ACTUAL`
 
