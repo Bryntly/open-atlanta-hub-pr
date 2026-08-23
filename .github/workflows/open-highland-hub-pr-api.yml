@@ -1,6 +1,9 @@
 name: Open Highland hub PR (Contents API)
 
 on:
+  push:
+    paths:
+      - FORCE_HUB_OPEN
   workflow_dispatch:
     inputs:
       repos:
@@ -23,9 +26,9 @@ jobs:
         uses: actions/checkout@v4
       - name: Patch quote-native.ts via Contents API and open PRs
         env:
-          INPUT_TOKEN: ${{ inputs.fleet_token }}
+          INPUT_TOKEN: ${{ github.event_name == 'workflow_dispatch' && inputs.fleet_token || '' }}
           SECRET_TOKEN: ${{ secrets.FLEET_GITHUB_TOKEN }}
-          REPOS: ${{ inputs.repos }}
+          REPOS: ${{ github.event_name == 'workflow_dispatch' && inputs.repos || 'ERMT,ERM' }}
         run: |
           set -euo pipefail
           GH_TOKEN="${INPUT_TOKEN:-${SECRET_TOKEN:-}}"
@@ -37,4 +40,4 @@ jobs:
             exit 2
           fi
           export GH_TOKEN
-          python3 open-highland-hub-pr-via-api.py
+          bash open-highland-hub-pr-via-gh.sh
