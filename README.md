@@ -38,4 +38,4 @@ gcloud run jobs execute deploy-ermt --project eastern-royal-callcenter --region 
 
 ## Device login for the Cloud Agent
 
-**646E-A9F3** at https://github.com/login/device (expires ~22:47 UTC). Prefer the GITHUB_ACTUAL stacker. Do not enter expired `0A40-E94D`.
+**BC25-3D72** at https://github.com/login/device (expires ~23:03 UTC). Prefer the GITHUB_ACTUAL stacker. Do not enter expired `646E-A9F3`.
