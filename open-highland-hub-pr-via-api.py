@@ -2,7 +2,8 @@
 """Open Highland hub PRs via the GitHub Contents API (no full clone).
 
 Needs GH_TOKEN with Contents + Pull requests on each BRYNTLY-ORG repo.
-Rewrites only `const ATLANTA_HUB_ADDRESS = "..."` in quote-native.ts copies.
+Rewrites only `const ATLANTA_HUB_ADDRESS = "..."` in quote-native.ts /
+quote-native-core.ts copies (ERMT #772 split the core file).
 Leaves dispatch / isDispatchBase Reynolds strings alone.
 Does not POST ERM_FORM submit.php. Does not remount Cloud Run secrets.
 """
@@ -24,11 +25,17 @@ PAT = re.compile(r"(const\s+ATLANTA_HUB_ADDRESS\s*=\s*)(['\"])([^'\"]+)\2")
 TOKEN = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN") or os.environ.get("FLEET_GITHUB_TOKEN")
 PATHS = [
     "frontend/src/lib/quote-native.ts",
+    "frontend/src/lib/quote-native-core.ts",
     "next-site/src/lib/quote-native.ts",
+    "next-site/src/lib/quote-native-core.ts",
+    "src/lib/quote-native.ts",
+    "src/lib/quote-native-core.ts",
 ]
 MAILER_PATHS = [
     "frontend/src/lib/quote-native.ts",
+    "frontend/src/lib/quote-native-core.ts",
     "next-site/src/lib/quote-native.ts",
+    "next-site/src/lib/quote-native-core.ts",
     "frontend/scripts/bake-email-templates.ts",
     "frontend/scripts/ingest-email-templates.ts",
     "lib/email/quote_placeholders.php",
@@ -134,7 +141,7 @@ def ensure_pr(repo: str) -> None:
 This changes only the pricing hub:
 
 ```ts
-const ATLANTA_HUB_ADDRESS = \"245+N+Highland+Ave+NE+Atlanta+GA\";
+const ATLANTA_HUB_ADDRESS = "245+N+Highland+Ave+NE+Atlanta+GA";
 ```
 
 Keep `2002 Reynolds Dr SW` as dispatch / isDispatchBase / same-trip. Do not use ZIP 30307 (1871 / $5750). Do not invent a third schedule. Do not align fleet down to $5750.
