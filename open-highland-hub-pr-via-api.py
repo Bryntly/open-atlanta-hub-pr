@@ -2,44 +2,71 @@
 """Open Highland hub PRs via the GitHub Contents API (no full clone).
 
 Needs GH_TOKEN with Contents + Pull requests on each BRYNTLY-ORG repo.
-Rewrites only `const ATLANTA_HUB_ADDRESS = "..."` in quote-native.ts /
-quote-native-core.ts copies (ERMT #772 split the core file).
+Rewrites the pricing hub in quote-native.ts / quote-native-core.ts
+(ERMT #772 split) and MOO_COW calculate.php Matrix origins.
 Leaves dispatch / isDispatchBase Reynolds strings alone.
 Does not POST ERM_FORM submit.php. Does not remount Cloud Run secrets.
 """
 from __future__ import annotations
 
 import base64
+import importlib.util
 import json
 import os
-import re
 import sys
 import urllib.error
 import urllib.request
 
 ORG = os.environ.get("GITHUB_ORG", "BRYNTLY-ORG")
-BRANCH = os.environ.get("HUB_BRANCH", "cursor/atlanta-hub-highland-610b")
-REPOS = [r.strip() for r in os.environ.get("REPOS", "ERMT,ERM").split(",") if r.strip()]
+BRANCH = os.environ.get("HUB_BRANCH", "cursor/quote-pipeline-stack-610b")
+REPOS = [r.strip() for r in os.environ.get("REPOS", "ERMT,ERM,LDMT,MOO_COW,ERM_FORM").split(",") if r.strip()]
 NEW_HUB = "245+N+Highland+Ave+NE+Atlanta+GA"
-PAT = re.compile(r"(const\s+ATLANTA_HUB_ADDRESS\s*=\s*)(['\"])([^'\"]+)\2")
 TOKEN = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN") or os.environ.get("FLEET_GITHUB_TOKEN")
 PATHS = [
     "frontend/src/lib/quote-native.ts",
     "frontend/src/lib/quote-native-core.ts",
+    "frontend/lib/quote-native.ts",
+    "frontend/lib/quote-native-core.ts",
     "next-site/src/lib/quote-native.ts",
     "next-site/src/lib/quote-native-core.ts",
     "src/lib/quote-native.ts",
     "src/lib/quote-native-core.ts",
+    "calculate.php",
+    "ldmtqg/calculate.php",
+    "ermqg/calculate.php",
+    "ermtqg/calculate.php",
+    "api/booking/_pricing.php",
 ]
+
+
+def _rewriter():
+    here = os.path.dirname(os.path.abspath(__file__))
+    spec = importlib.util.spec_from_file_location(
+        "rewrite_atlanta_hub",
+        os.path.join(here, "rewrite-atlanta-hub.py"),
+    )
+    if spec is None or spec.loader is None:
+        raise SystemExit("rewrite-atlanta-hub.py is required next to this script")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+REWRITE = _rewriter()
 MAILER_PATHS = [
     "frontend/src/lib/quote-native.ts",
     "frontend/src/lib/quote-native-core.ts",
+    "frontend/lib/quote-native.ts",
+    "frontend/lib/quote-native-core.ts",
     "next-site/src/lib/quote-native.ts",
     "next-site/src/lib/quote-native-core.ts",
     "frontend/scripts/bake-email-templates.ts",
     "frontend/scripts/ingest-email-templates.ts",
     "lib/email/quote_placeholders.php",
     "ldmtqg/calculate.php",
+    "ermqg/calculate.php",
+    "ermtqg/calculate.php",
+    "calculate.php",
     "api/quote/site-submit.php",
 ]
 MAILER_NEEDLES = (
@@ -105,15 +132,17 @@ def patch_file(repo: str, path: str) -> bool:
             return False
         raise
     text = base64.b64decode(info["content"]).decode()
-    match = PAT.search(text)
-    if not match:
-        print(f"SKIP {repo}/{path} (no ATLANTA_HUB_ADDRESS)")
+    updated, notes = REWRITE.rewrite_text(text)
+    if not notes:
+        match = REWRITE.HUB_CONST.search(text)
+        if match and match.group(3) == NEW_HUB:
+            print(f"OK   {repo}/{path} already Highland-class")
+        elif "2002+Reynolds+Dr+SW+Atlanta+GA" in text or "2002 Reynolds Dr SW" in text:
+            print(f"OK   {repo}/{path} dispatch-only Reynolds kept")
+        else:
+            print(f"SKIP {repo}/{path} (no pricing hub literal)")
         return False
-    current = match.group(3)
-    if current == NEW_HUB:
-        print(f"OK   {repo}/{path} already Highland-class")
-        return False
-    updated = PAT.sub(rf"\1\g<2>{NEW_HUB}\2", text, count=1)
+    current = notes[0]
     api(
         "PUT",
         f"/repos/{ORG}/{repo}/contents/{path}",
@@ -124,7 +153,7 @@ def patch_file(repo: str, path: str) -> bool:
             "branch": BRANCH,
         },
     )
-    print(f"PATCH {repo}/{path}: {current!r} -> {NEW_HUB!r}")
+    print(f"PATCH {repo}/{path}: {current}")
     return True
 
 
@@ -141,7 +170,7 @@ def ensure_pr(repo: str) -> None:
 This changes only the pricing hub:
 
 ```ts
-const ATLANTA_HUB_ADDRESS = "245+N+Highland+Ave+NE+Atlanta+GA";
+const ATLANTA_HUB_ADDRESS = \"245+N+Highland+Ave+NE+Atlanta+GA\";
 ```
 
 Keep `2002 Reynolds Dr SW` as dispatch / isDispatchBase / same-trip. Do not use ZIP 30307 (1871 / $5750). Do not invent a third schedule. Do not align fleet down to $5750.

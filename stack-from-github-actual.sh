@@ -27,6 +27,16 @@ fi
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SIBLING="${HERE}/stack-fleet-open-prs.sh"
+# Private-kit copies used to ship a 2-app gh/python opener (ERMT,ERM only).
+# Prefer the stacker; warn if that stale opener is still sitting next to it.
+if [[ -f "${HERE}/open-highland-hub-pr-via-gh.sh" ]] \
+  && grep -qE 'REPOS="\$\{REPOS:-ERMT,ERM\}"' "${HERE}/open-highland-hub-pr-via-gh.sh"; then
+  echo "WARN: sibling open-highland-hub-pr-via-gh.sh is the 2-app copy (skips LDMT/MOO_COW/ERM_FORM, frontend/lib, PHP). Use this stacker or the public kit, not that opener." >&2
+fi
+if [[ -f "${HERE}/open-highland-hub-pr-via-api.py" ]] \
+  && grep -qE 'get\("REPOS", "ERMT,ERM"\)' "${HERE}/open-highland-hub-pr-via-api.py"; then
+  echo "WARN: sibling open-highland-hub-pr-via-api.py is the 2-app copy (skips LDMT/MOO_COW/ERM_FORM, frontend/lib, PHP). Use this stacker, not that opener or a fleet_token dispatch that still runs it." >&2
+fi
 run_stacker() {
   echo "Stacking quote-only PRs from ${FLEET_ACTUAL}"
   echo "Worktrees: ${FLEET_SRC}  branch: ${HUB_BRANCH}"
