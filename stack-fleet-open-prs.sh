@@ -128,7 +128,6 @@ for repo in "${repo_list[@]}"; do
     rest2="${rest#*$'\t'}"
     title="${rest2%%$'\t'*}"
     url="${rest2#*$'\t'}"
-    # Never restack a PR that is already this stack branch.
     if [[ "${head}" == "${BRANCH}" ]]; then
       echo "SKIP #${num} (already ${BRANCH})"
       continue
@@ -143,7 +142,7 @@ for repo in "${repo_list[@]}"; do
       continue
     fi
     if git -C "${root}" merge --no-ff --no-edit "pr-${num}"; then
-      absorbed_md="${absorbed_md}- [#${num}](${url}) ${title}"$'{newline}'
+      absorbed_md="${absorbed_md}- [#${num}](${url}) ${title}"$'\n'
       absorbed_nums="${absorbed_nums} ${num}"
     else
       echo "CONFLICT #${num} — leaving it out of the stack" >&2
