@@ -1,23 +1,31 @@
 #!/usr/bin/env bash
 # Open Highland hub PRs with `gh api` only (no python, no full clone).
 # Run on a machine already logged into gh as someone who can write BRYNTLY-ORG.
-# Default: ERMT then ERM. Rewrites only `const ATLANTA_HUB_ADDRESS = "..."`.
-# Leaves dispatch / isDispatchBase Reynolds strings alone.
+# Default: all five quote apps. Rewrites `const ATLANTA_HUB_ADDRESS`
+# and calculate.php Matrix origins. Leaves dispatch / isDispatchBase
+# Reynolds strings alone.
 # Does not POST ERM_FORM submit.php. Does not remount Cloud Run secrets.
 set -euo pipefail
 
 ORG="${GITHUB_ORG:-BRYNTLY-ORG}"
-BRANCH="${HUB_BRANCH:-cursor/atlanta-hub-highland-610b}"
-REPOS="${REPOS:-ERMT,ERM}"
+BRANCH="${HUB_BRANCH:-cursor/quote-pipeline-stack-610b}"
+REPOS="${REPOS:-ERMT,ERM,LDMT,MOO_COW,ERM_FORM}"
 NEW_HUB='245+N+Highland+Ave+NE+Atlanta+GA'
 
 PATHS=(
   frontend/src/lib/quote-native.ts
   frontend/src/lib/quote-native-core.ts
+  frontend/lib/quote-native.ts
+  frontend/lib/quote-native-core.ts
   next-site/src/lib/quote-native.ts
   next-site/src/lib/quote-native-core.ts
   src/lib/quote-native.ts
   src/lib/quote-native-core.ts
+  calculate.php
+  ldmtqg/calculate.php
+  ermqg/calculate.php
+  ermtqg/calculate.php
+  api/booking/_pricing.php
 )
 
 b64decode() {
@@ -70,16 +78,28 @@ patch_file() {
     return 1
   fi
   text="$(gh api "repos/${ORG}/${repo}/contents/${path}?ref=${BRANCH}" --jq .content | tr -d '\n' | b64decode)"
-  if ! printf '%s' "${text}" | grep -q 'const ATLANTA_HUB_ADDRESS'; then
-    echo "SKIP ${repo}/${path} (no ATLANTA_HUB_ADDRESS)"
+  updated="${text}"
+  if printf '%s' "${text}" | grep -q 'const ATLANTA_HUB_ADDRESS'; then
+    current="$(printf '%s' "${text}" | sed -n 's/.*const ATLANTA_HUB_ADDRESS = "\([^"]*\)".*/\1/p' | head -1)"
+    if [[ "${current}" == "${NEW_HUB}" ]]; then
+      echo "OK   ${repo}/${path} already Highland-class"
+    else
+      updated="$(printf '%s' "${text}" | sed "s/const ATLANTA_HUB_ADDRESS = \"[^\"]*\"/const ATLANTA_HUB_ADDRESS = \"${NEW_HUB}\"/")"
+    fi
+  elif ! printf '%s' "${text}" | grep -q '2002+Reynolds+Dr+SW+Atlanta+GA\|2002 Reynolds Dr SW'; then
+    echo "SKIP ${repo}/${path} (no pricing hub literal)"
     return 1
   fi
-  current="$(printf '%s' "${text}" | sed -n 's/.*const ATLANTA_HUB_ADDRESS = "\([^"]*\)".*/\1/p' | head -1)"
-  if [[ "${current}" == "${NEW_HUB}" ]]; then
+  updated="$(printf '%s' "${updated}" | perl -pe '
+    next if /isDispatchBase|isSameTrip|Drive Southwest|includes\(|str_contains/;
+    s/2002\+Reynolds\+Dr\+SW\+Atlanta\+GA/245+N+Highland+Ave+NE+Atlanta+GA/g;
+    s/2002 Reynolds Dr SW/245 N Highland Ave NE/g;
+  ')"
+  if [[ "${updated}" == "${text}" ]]; then
     echo "OK   ${repo}/${path} already Highland-class"
     return 1
   fi
-  updated="$(printf '%s' "${text}" | sed "s/const ATLANTA_HUB_ADDRESS = \"[^\"]*\"/const ATLANTA_HUB_ADDRESS = \"${NEW_HUB}\"/")"
+  current="${current:-Reynolds}"
   encoded="$(printf '%s' "${updated}" | b64encode)"
   gh api --method PUT "repos/${ORG}/${repo}/contents/${path}" \
     -f message='fix(quote): price city Atlanta from Highland-class hub' \
@@ -123,12 +143,17 @@ EOF
 MAILER_PATHS=(
   frontend/src/lib/quote-native.ts
   frontend/src/lib/quote-native-core.ts
+  frontend/lib/quote-native.ts
+  frontend/lib/quote-native-core.ts
   next-site/src/lib/quote-native.ts
   next-site/src/lib/quote-native-core.ts
   frontend/scripts/bake-email-templates.ts
   next-site/scripts/bake-email-templates.ts
   lib/email/quote_placeholders.php
   ldmtqg/calculate.php
+  ermqg/calculate.php
+  ermtqg/calculate.php
+  calculate.php
   api/quote/site-submit.php
 )
 
