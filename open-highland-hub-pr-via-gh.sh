@@ -120,6 +120,46 @@ EOF
   echo "PR   ${url}"
 }
 
+MAILER_PATHS=(
+  frontend/src/lib/quote-native.ts
+  frontend/src/lib/quote-native-core.ts
+  next-site/src/lib/quote-native.ts
+  next-site/src/lib/quote-native-core.ts
+  frontend/scripts/bake-email-templates.ts
+  next-site/scripts/bake-email-templates.ts
+  lib/email/quote_placeholders.php
+  ldmtqg/calculate.php
+  api/quote/site-submit.php
+)
+
+report_mailer() {
+  local repo="$1"
+  local path text hits n found_any=0
+  echo "--- ${repo} mailer/persist contract ---"
+  for path in "${MAILER_PATHS[@]}"; do
+    if ! text="$(gh api "repos/${ORG}/${repo}/contents/${path}?ref=main" --jq .content 2>/dev/null | tr -d '\n' | b64decode)"; then
+      continue
+    fi
+    found_any=1
+    hits=""
+    for n in canDirectSendInternal INTERNAL_EMAIL SENDGRID_API_KEY quote_internal quote_internal_long MOOCOW:quote_internal get_texts quote_customer quote_bcc; do
+      if printf '%s' "${text}" | grep -Fq "${n}"; then
+        hits="${hits} ${n}"
+      fi
+    done
+    echo "READ ${repo}/${path} (${#text} bytes) hits=${hits:- none}"
+    if printf '%s' "${text}" | grep -Fq 'canDirectSendInternal'; then
+      echo "NOTE canDirectSendInternal must stay false unless baked quote_internal + SENDGRID_API_KEY + INTERNAL_EMAIL are all active."
+    fi
+    if printf '%s' "${text}" | grep -Fq 'function get_texts'; then
+      echo "NOTE healthy MOO_COW write is 3 app.email_outbox rows: quote_customer, quote_bcc, quote_internal."
+    fi
+  done
+  if [[ "${found_any}" -eq 0 ]]; then
+    echo "SKIP ${repo} mailer files not on main (or token cannot read them)"
+  fi
+}
+
 IFS=',' read -r -a repo_list <<<"${REPOS}"
 for repo in "${repo_list[@]}"; do
   repo="$(echo "${repo}" | tr -d ' ')"
@@ -141,6 +181,7 @@ for repo in "${repo_list[@]}"; do
   else
     echo "CLEAN ${repo} (no hub rewrite)"
   fi
+  report_mailer "${repo}" || true
 done
 
 if [[ "${patched_any}" -eq 0 ]]; then
