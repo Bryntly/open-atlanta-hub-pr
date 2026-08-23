@@ -151,13 +151,18 @@ for repo in "${repo_list[@]}"; do
     fi
   done
 
-  if [[ -x "${SCRIPT_DIR}/rewrite-atlanta-hub.py" ]]; then
-    set +e
-    python3 "${SCRIPT_DIR}/rewrite-atlanta-hub.py" "${root}"
-    rewrite_rc=$?
-    set -e
-    echo "hub rewrite exit ${rewrite_rc}"
+  # Contents-API / push_files write mode 644. Do not require +x or the
+  # hub rewrite is skipped and Atlanta letters stay $5750.
+  if [[ ! -f "${SCRIPT_DIR}/rewrite-atlanta-hub.py" ]]; then
+    echo "MISS ${SCRIPT_DIR}/rewrite-atlanta-hub.py — fail-closed (no hub rewrite)" >&2
+    failed=$((failed + 1))
+    continue
   fi
+  set +e
+  python3 "${SCRIPT_DIR}/rewrite-atlanta-hub.py" "${root}"
+  rewrite_rc=$?
+  set -e
+  echo "hub rewrite exit ${rewrite_rc}"
 
   if [[ -n "$(git -C "${root}" status --porcelain)" ]]; then
     git -C "${root}" add -u
@@ -197,7 +202,10 @@ for repo in "${repo_list[@]}"; do
 done
 
 echo
-if [[ -x "${SCRIPT_DIR}/verify-quote-mailer-after-clone.sh" ]]; then
+if [[ ! -f "${SCRIPT_DIR}/verify-quote-mailer-after-clone.sh" ]]; then
+  echo "MISS ${SCRIPT_DIR}/verify-quote-mailer-after-clone.sh — fail-closed (do not merge without the mailer/hub contract)." >&2
+  failed=$((failed + 1))
+else
   echo "=== mailer / persist contract (fail-closed) ==="
   FLEET_SRC="${DEST}" bash "${SCRIPT_DIR}/verify-quote-mailer-after-clone.sh" || {
     echo "Mailer/hub contract failed in the clone tree. Stack PRs may still be open — do not merge until verify passes." >&2
