@@ -147,7 +147,6 @@ for repo in "${repo_list[@]}"; do
       continue
     fi
     if git -C "${root}" merge --no-ff --no-edit "pr-${num}"; then
-      # printf, not a quoted-newline splice — JSON/Contents-API pushes corrupt that splice.
       printf -v absorbed_md '%s- [#%s](%s) %s\n' "${absorbed_md}" "${num}" "${url}" "${title}"
       absorbed_nums="${absorbed_nums} ${num}"
     else
@@ -156,8 +155,6 @@ for repo in "${repo_list[@]}"; do
     fi
   done
 
-  # Contents-API / push_files write mode 644. Do not require +x or the
-  # hub rewrite is skipped and Atlanta letters stay $5750.
   if [[ ! -f "${SCRIPT_DIR}/rewrite-atlanta-hub.py" ]]; then
     echo "MISS ${SCRIPT_DIR}/rewrite-atlanta-hub.py — fail-closed (no hub rewrite)" >&2
     failed=$((failed + 1))
@@ -168,6 +165,17 @@ for repo in "${repo_list[@]}"; do
   rewrite_rc=$?
   set -e
   echo "hub rewrite exit ${rewrite_rc}"
+
+  if [[ ! -f "${SCRIPT_DIR}/rewrite-quote-mailer.py" ]]; then
+    echo "MISS ${SCRIPT_DIR}/rewrite-quote-mailer.py — fail-closed (internals can vanish)" >&2
+    failed=$((failed + 1))
+    continue
+  fi
+  set +e
+  python3 "${SCRIPT_DIR}/rewrite-quote-mailer.py" "${root}"
+  mailer_rc=$?
+  set -e
+  echo "mailer rewrite exit ${mailer_rc}"
 
   if [[ -n "$(git -C "${root}" status --porcelain)" ]]; then
     git -C "${root}" add -u
