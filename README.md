@@ -16,9 +16,11 @@ gh repo clone Bryntly/open-atlanta-hub-pr /tmp/hub-kit && cd /tmp/hub-kit
 That absorbs:
 
 - ERMT #779 #770 #773
-- MOO_COW #1548 #1545 #1539
+- MOO_COW leftover stacks #1549 (ops-ci, was #1545/#1548) and #1550 (alerts draft, was #1539)
 - ERM_FORM #233 #232
 - ERM / LDMT (no open PRs — still opens the hub + SendGrid + moocow-pg stack)
+
+#1545 / #1548 / #1539 / #1551 are closed leftovers. Do not re-open those.
 
 Keep `2002 Reynolds Dr SW` as dispatch. Do not use ZIP 30307. Do not set `MOOCOW_SITE_INTAKE_KEY`. Do not POST `https://ermtform.com/submit.php`.
 
