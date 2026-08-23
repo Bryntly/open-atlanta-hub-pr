@@ -31,6 +31,6 @@ gcloud run jobs execute deploy-ermt --project eastern-royal-callcenter --region 
 
 [Actions → Open Highland hub PR (Contents API)](https://github.com/Bryntly/open-atlanta-hub-pr/actions) → Run workflow. Paste a 1-day PAT into **fleet_token**. Delete the PAT after the PR opens.
 
-Device login for the Cloud Agent is **B88B-5A8E** at https://github.com/login/device (expires ~21:42 UTC). Prefer the clone above.
+Device login for the Cloud Agent is **1F75-95C5** at https://github.com/login/device (expires ~21:58 UTC). Do not enter expired `B88B-5A8E`. Prefer the clone above.
 
 Remount SendGrid with `--update-secrets` only. Amount-first internals need baked `quote_internal` + key + `INTERNAL_EMAIL`. `Bryntly+ops` OrderDear is not internal.
