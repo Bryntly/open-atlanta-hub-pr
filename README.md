@@ -1,8 +1,8 @@
 # Open the ERMT Highland hub PR
 
-City-string `Atlanta, GA` → `Austin, TX` must email fleet **$5,650** from 3-leg total **1864**. Live ERM_FORM `quotex.php` already does that. 21:00 letters still say **$5,750** because `ATLANTA_HUB_ADDRESS` is `2002 Reynolds Dr SW` (including ERMT #772 `quote-native-core.ts`).
+City-string `Atlanta, GA` → `Austin, TX` must email fleet **$5,650** from 3-leg total **1864**. Live ERM_FORM `quotex.php` already does that (re-proved 21:19 UTC). 21:00 letters still say **$5,750** because `ATLANTA_HUB_ADDRESS` is `2002 Reynolds Dr SW` (including ERMT #772 `quote-native-core.ts`).
 
-You are already in Desktop `gh` closing Gemini / Copilot PRs. Stay in that session. Do **not** arm [MOO_COW #1542](https://github.com/BRYNTLY-ORG/MOO_COW/pull/1542) first — those generators still carry the legacy inline formula and would mail the $5750 outbox amount.
+You just opened [ERMT #778](https://github.com/BRYNTLY-ORG/ERMT/pull/778) (quote validation + warden). That is **not** the hub. Stay in that Desktop `gh` session. Do **not** arm [MOO_COW #1542](https://github.com/BRYNTLY-ORG/MOO_COW/pull/1542) first — those generators still carry the legacy inline formula and would mail the $5750 outbox amount.
 
 ## Fastest: paste this in the same `gh` terminal
 
