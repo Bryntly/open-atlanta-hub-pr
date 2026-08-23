@@ -4,15 +4,19 @@ City-string `Atlanta, GA` → `Austin, TX` must email fleet **$5,650** from 3-le
 
 Copilot on this repo ([PR #1](https://github.com/Bryntly/open-atlanta-hub-pr/pull/1)) failed in 13 seconds. Do not wait on Copilot. [MOO_COW #1542](https://github.com/BRYNTLY-ORG/MOO_COW/pull/1542) is generator smoke, not this hub change.
 
-## Fastest: Desktop curl
+## Fastest: same Desktop `gh` already opening ERMT PRs
 
-On any machine where `gh` can write `BRYNTLY-ORG/ERMT`:
+```bash
+gh api repos/Bryntly/open-atlanta-hub-pr/contents/open-highland-hub-pr-via-api.py --jq .content | base64 -d | GH_TOKEN="$(gh auth token)" python3 -
+```
+
+Or:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Bryntly/open-atlanta-hub-pr/main/desktop-open-hub-pr.sh | bash
 ```
 
-That uses **your** `gh` token (not the Cloud Agent's >366-day classic PAT). It opens `cursor/atlanta-hub-highland-610b` on **ERMT, then ERM**, rewriting `ATLANTA_HUB_ADDRESS` in `quote-native.ts` **and** `quote-native-core.ts`. Keep Reynolds as dispatch. Do not use ZIP 30307. Do not POST `https://ermtform.com/submit.php`.
+Either uses **your** `gh` token (not the Cloud Agent's >366-day classic PAT). Opens `cursor/atlanta-hub-highland-610b` on **ERMT, then ERM**, rewriting `ATLANTA_HUB_ADDRESS` in `quote-native.ts` **and** `quote-native-core.ts`. Keep Reynolds as dispatch. Do not use ZIP 30307. Do not POST `https://ermtform.com/submit.php`.
 
 Then merge ERMT and:
 
