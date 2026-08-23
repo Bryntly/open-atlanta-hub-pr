@@ -2,6 +2,18 @@
 # After the fleet clone, fail loud if the customer / internal / persist
 # contract is missing from source. Does not send mail. Does not POST
 # ERM_FORM submit.php. Does not remount Cloud Run secrets.
+#
+# Proven from PR bodies (file APIs still 403 on PAT 2837364105):
+# - LDMT #1405: 9-template bake from moocow-pg. Candidate chain
+#   quote_internal → quote_internal_long → quote_internal_short →
+#   MOOCOW:quote_internal. Live bake: LDMT/ERMT share MOOCOW:quote_internal
+#   (619B); ERM uses quote_internal_long (15064B).
+# - LDMT #1103: canDirectSendInternal skips the internal email_queue row
+#   only when baked template + SENDGRID_API_KEY + INTERNAL_EMAIL are all
+#   active. Direct-send failure must insert the legacy fallback row.
+# - MOO_COW #944: healthy write is 3 app.email_outbox rows
+#   (quote_customer, quote_bcc, quote_internal). ldmtqg used to persist
+#   with zero emails when get_texts() was not loaded.
 set -euo pipefail
 
 DEST="${FLEET_SRC:-/tmp/fleet-src}"
@@ -132,8 +144,10 @@ fi
 echo
 echo "=== Next-direct vs PHP drain ==="
 echo "ERM submit-gate email.ok:false / not_configured means SENDGRID_API_KEY is not mounted."
-echo "Remount with --update-secrets only."
-echo "LDMT #1103: if canDirectSendInternal is true while the key is missing, internals vanish."
+echo "Remount with --update-secrets only: ./scripts/inspect-cloud-run-sendgrid.sh remount"
+echo "LDMT #1103: if canDirectSendInternal is true while the key is missing, the"
+echo "internal queue row is skipped and no amount-first letter lands. After clone,"
+echo "canDirectSendInternal must be false unless template + key + INTERNAL_EMAIL are all present."
 echo "PHP email-drainer only sends customer OrderDear unless outbox also has quote_internal."
 
 echo

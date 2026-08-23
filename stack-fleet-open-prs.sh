@@ -129,6 +129,7 @@ for repo in "${repo_list[@]}"; do
     rest2="${rest#*${tab}}"
     title="${rest2%%${tab}*}"
     url="${rest2#*${tab}}"
+    # Never restack a PR that is already this stack branch.
     if [[ "${head}" == "${BRANCH}" ]]; then
       echo "SKIP #${num} (already ${BRANCH})"
       continue
@@ -143,6 +144,7 @@ for repo in "${repo_list[@]}"; do
       continue
     fi
     if git -C "${root}" merge --no-ff --no-edit "pr-${num}"; then
+      # printf, not a quoted-newline splice — JSON/Contents-API pushes corrupt that splice.
       printf -v absorbed_md '%s- [#%s](%s) %s\n' "${absorbed_md}" "${num}" "${url}" "${title}"
       absorbed_nums="${absorbed_nums} ${num}"
     else
