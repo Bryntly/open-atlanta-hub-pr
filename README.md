@@ -1,36 +1,41 @@
-# Open the ERMT Highland hub PR
+# Stack one quote-pipeline PR per fleet app
 
-City-string `Atlanta, GA` → `Austin, TX` must email fleet **$5,650** from 3-leg total **1864**. Live ERM_FORM `quotex.php` still does that at 21:38 UTC. 21:00 letters still say **$5,750** because `ATLANTA_HUB_ADDRESS` is `2002 Reynolds Dr SW`.
+City-string `Atlanta, GA` → `Austin, TX` must email fleet **$5,650** from 3-leg total **1864**. Live ERM_FORM `quotex.php` still does that. 21:00 letters still say **$5,750**.
 
-[ERMT #778](https://github.com/BRYNTLY-ORG/ERMT/pull/778) is validation + warden, not this restore. Do not rewrite the hub inside that worktree.
+Do **not** open another hub-only micro-PR. Stack every open fleet PR plus the Highland hub into **one** PR per app.
 
-[MOO_COW #1542](https://github.com/BRYNTLY-ORG/MOO_COW/pull/1542) **merged**. Do **not** set `MOOCOW_SITE_INTAKE_KEY` until this hub is live — those generators still mail $5750.
+## Fastest: stacker (reviewable, no remote bash)
 
-## Fastest: fresh clone (any directory, no remote bash)
+On a machine already logged into `gh` with org write:
 
 ```bash
-rm -rf /tmp/ermt-hub && gh repo clone BRYNTLY-ORG/ERMT /tmp/ermt-hub && cd /tmp/ermt-hub
-git checkout -B cursor/atlanta-hub-highland-610b origin/main
-perl -pi -e 's/const ATLANTA_HUB_ADDRESS = "[^"]*"/const ATLANTA_HUB_ADDRESS = "245+N+Highland+Ave+NE+Atlanta+GA"/' \
-  $(git grep -l 'const ATLANTA_HUB_ADDRESS' -- '*.ts')
-git diff -U1 -- '*.ts'
-git add -u && git commit -m "fix(quote): price city Atlanta from Highland-class hub"
-git push -u origin cursor/atlanta-hub-highland-610b
-gh pr create --base main --title "fix(quote): price city Atlanta from Highland-class hub, not Reynolds SW"
+gh repo clone Bryntly/open-atlanta-hub-pr /tmp/hub-kit && cd /tmp/hub-kit
+./stack-fleet-open-prs.sh
 ```
 
-Then the same with `BRYNTLY-ORG/ERM` → `/tmp/erm-hub`. Keep `2002 Reynolds Dr SW` as dispatch. Do not use ZIP 30307. Do not POST `https://ermtform.com/submit.php`.
+That absorbs:
 
-Then merge ERMT and:
+- ERMT #779 #770 #773
+- MOO_COW #1548 #1545 #1539
+- ERM_FORM #233 #232
+- ERM / LDMT (no open PRs — still opens the hub + SendGrid + moocow-pg stack)
+
+Keep `2002 Reynolds Dr SW` as dispatch. Do not use ZIP 30307. Do not set `MOOCOW_SITE_INTAKE_KEY`. Do not POST `https://ermtform.com/submit.php`.
+
+Then merge **ERMT** and:
 
 ```bash
 gcloud run jobs execute deploy-ermt --project eastern-royal-callcenter --region us-east1
 ```
 
-## Or click Actions
+## Or one Contents-API command (hub only, no PR absorb)
 
-[Actions → Open Highland hub PR (Contents API)](https://github.com/Bryntly/open-atlanta-hub-pr/actions) → Run workflow. Paste a 1-day PAT into **fleet_token**. Delete the PAT after the PR opens.
+```bash
+gh api repos/Bryntly/open-atlanta-hub-pr/contents/open-highland-hub-pr-via-gh.sh --jq .content | base64 -D | bash
+```
 
-Device login for the Cloud Agent is **1F75-95C5** at https://github.com/login/device (expires ~21:58 UTC). Do not enter expired `B88B-5A8E`. Prefer the clone above.
+## Device login for the Cloud Agent
+
+**C19C-AAF6** at https://github.com/login/device (expires ~22:14 UTC). Do not enter expired `1F75-95C5`.
 
 Remount SendGrid with `--update-secrets` only. Amount-first internals need baked `quote_internal` + key + `INTERNAL_EMAIL`. `Bryntly+ops` OrderDear is not internal.
