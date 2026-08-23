@@ -10,13 +10,13 @@ ERM #425 was built from that tree. Do **not** `checkout -B` on those dirty check
 
 ```bash
 gh repo clone Bryntly/open-atlanta-hub-pr /tmp/hub-kit && cd /tmp/hub-kit
-./stack-from-github-actual.sh
+bash ./stack-from-github-actual.sh
 ```
 
 Or, if this kit is already next to the fleet:
 
 ```bash
-FLEET_ACTUAL=/Users/pacman/GITHUB_ACTUAL FLEET_SRC=/tmp/fleet-src ./stack-fleet-open-prs.sh
+FLEET_ACTUAL=/Users/pacman/GITHUB_ACTUAL FLEET_SRC=/tmp/fleet-src bash ./stack-fleet-open-prs.sh
 ```
 
 That worktrees into `/tmp/fleet-src` and refuses in-place on GITHUB_ACTUAL.
@@ -25,7 +25,7 @@ That worktrees into `/tmp/fleet-src` and refuses in-place on GITHUB_ACTUAL.
 
 ```bash
 gh repo clone Bryntly/open-atlanta-hub-pr /tmp/hub-kit && cd /tmp/hub-kit
-./stack-fleet-open-prs.sh
+bash ./stack-fleet-open-prs.sh
 ```
 
 Keep `2002 Reynolds Dr SW` as dispatch. Do not use ZIP 30307. Do not set `MOOCOW_SITE_INTAKE_KEY`. Do not POST `https://ermtform.com/submit.php`.
