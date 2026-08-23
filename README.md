@@ -2,6 +2,8 @@
 
 City-string `Atlanta, GA` → `Austin, TX` must email fleet **$5,650** from 3-leg total **1864**. Live ERM_FORM `quotex.php` already does that. Next/outbox letters still say **$5,750** because `ATLANTA_HUB_ADDRESS` is `2002 Reynolds Dr SW`.
 
+Copilot on this repo ([PR #1](https://github.com/Bryntly/open-atlanta-hub-pr/pull/1)) failed in 13 seconds. Do not wait on Copilot. [MOO_COW #1542](https://github.com/BRYNTLY-ORG/MOO_COW/pull/1542) is generator smoke, not this hub change.
+
 ## Fastest: Desktop curl
 
 On any machine where `gh` can write `BRYNTLY-ORG/ERMT`:
