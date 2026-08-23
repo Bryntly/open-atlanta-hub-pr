@@ -9,9 +9,9 @@ on:
       repos:
         description: "Comma-separated BRYNTLY-ORG repos. ERMT first."
         required: true
-        default: "ERMT,ERM"
+        default: "ERMT,ERM,LDMT,MOO_COW,ERM_FORM"
       fleet_token:
-        description: "Optional one-run PAT (fine-grained or <366-day classic; Contents + PRs on ERMT/ERM). Leave empty to use FLEET_GITHUB_TOKEN. Visible on this run page — use a 1-day token."
+        description: "1-day PAT with Contents + PRs on the five quote apps. Leave empty to use FLEET_GITHUB_TOKEN. Visible on this run page."
         required: false
         type: string
         default: ""
@@ -28,7 +28,8 @@ jobs:
         env:
           INPUT_TOKEN: ${{ github.event_name == 'workflow_dispatch' && inputs.fleet_token || '' }}
           SECRET_TOKEN: ${{ secrets.FLEET_GITHUB_TOKEN }}
-          REPOS: ${{ github.event_name == 'workflow_dispatch' && inputs.repos || 'ERMT,ERM' }}
+          REPOS: ${{ github.event_name == 'workflow_dispatch' && inputs.repos || 'ERMT,ERM,LDMT,MOO_COW,ERM_FORM' }}
+          HUB_BRANCH: cursor/quote-pipeline-stack-610b
         run: |
           set -euo pipefail
           GH_TOKEN="${INPUT_TOKEN:-${SECRET_TOKEN:-}}"
@@ -36,7 +37,11 @@ jobs:
             echo "::add-mask::${GH_TOKEN}"
           fi
           if [[ -z "${GH_TOKEN}" ]]; then
-            echo "Paste fleet_token on this run, or add repo secret FLEET_GITHUB_TOKEN (fine-grained or <366-day PAT, Contents + PRs on ERMT and ERM)." >&2
+            echo "No fleet_token / FLEET_GITHUB_TOKEN. Do not use this push path." >&2
+            echo "On Desktop (you already have /Users/pacman/GITHUB_ACTUAL):" >&2
+            echo "  gh repo clone Bryntly/open-atlanta-hub-pr /tmp/hub-kit && cd /tmp/hub-kit" >&2
+            echo "  bash ./stack-from-github-actual.sh" >&2
+            echo "Or re-run this workflow with a 1-day PAT in fleet_token (all five apps)." >&2
             exit 2
           fi
           export GH_TOKEN
