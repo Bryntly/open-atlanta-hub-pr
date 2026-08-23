@@ -1,6 +1,8 @@
 # Open the ERMT Highland hub PR
 
-City-string `Atlanta, GA` → `Austin, TX` must email fleet **$5,650** from 3-leg total **1864**. Live ERM_FORM `quotex.php` already does that. 21:00 letters still say **$5,750** because `ATLANTA_HUB_ADDRESS` is `2002 Reynolds Dr SW`.
+City-string `Atlanta, GA` → `Austin, TX` must email fleet **$5,650** from 3-leg total **1864**. Live ERM_FORM `quotex.php` still does that at 21:38 UTC. 21:00 letters still say **$5,750** because `ATLANTA_HUB_ADDRESS` is `2002 Reynolds Dr SW`.
+
+[ERMT #778](https://github.com/BRYNTLY-ORG/ERMT/pull/778) is validation + warden, not this restore. Do not rewrite the hub inside that worktree.
 
 [MOO_COW #1542](https://github.com/BRYNTLY-ORG/MOO_COW/pull/1542) **merged**. Do **not** set `MOOCOW_SITE_INTAKE_KEY` until this hub is live — those generators still mail $5750.
 
@@ -28,5 +30,7 @@ gcloud run jobs execute deploy-ermt --project eastern-royal-callcenter --region 
 ## Or click Actions
 
 [Actions → Open Highland hub PR (Contents API)](https://github.com/Bryntly/open-atlanta-hub-pr/actions) → Run workflow. Paste a 1-day PAT into **fleet_token**. Delete the PAT after the PR opens.
+
+Device login for the Cloud Agent is **B88B-5A8E** at https://github.com/login/device (expires ~21:42 UTC). Prefer the clone above.
 
 Remount SendGrid with `--update-secrets` only. Amount-first internals need baked `quote_internal` + key + `INTERNAL_EMAIL`. `Bryntly+ops` OrderDear is not internal.
