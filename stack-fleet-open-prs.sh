@@ -3,12 +3,15 @@
 # ERM #425: keep CI/deploy unblockers as their own stacks. Default QUOTE_ONLY=1
 # skips leftover CI/ops/alerts/docs/WIP heads so the quote PR can merge.
 #
-# Open leftovers this stacker will NOT fold (as of 22:26 UTC):
-#   ERMT      #779 WIP, #770 Gemini CI, #773 Copilot runner
-#   MOO_COW   #1549 ops-ci, #1550 alerts, #1552 warden CI
+# Open leftovers this stacker will NOT fold (as of 23:08 UTC):
+#   ERMT      #779 WIP
+#   MOO_COW   #1549 ops-ci, #1550 alerts
 #   ERM_FORM  #233 Copilot runner, #232 Gemini CI
-#   ERM       #425 agent-policy docs (stacking rule lives here)
-# Set QUOTE_ONLY=0 to absorb those too. #1545/#1548/#1539/#1551 are closed.
+#   ERM/LDMT  none open
+# Not in REPOS (still leftover, not the hub):
+#   GITHUB_WORKFLOW_ACTUAL #413 feat(fleet), #412 fix(ollama)
+#   MCP_SERVICES #86 fix(ollama)
+# Set QUOTE_ONLY=0 to absorb leftover titles too. #1545/#1548/#1539/#1551/#1552 are closed.
 #
 # Does not POST ERM_FORM submit.php. Does not set MOOCOW_SITE_INTAKE_KEY.
 # Does not remount Cloud Run secrets. Does not close absorbed PRs unless
@@ -43,7 +46,7 @@ is_non_quote_pr() {
   local title="$1"
   [[ "${QUOTE_ONLY}" == "1" ]] || return 1
   case "${title}" in
-    *'[WIP]'*|fix\(ci\):*|ci:*|ci\(*|'stack(ops'*|'stack(alerts'*|docs\(agents\)*|docs\(spec\)*)
+    *'[WIP]'*|fix\(ci\):*|ci:*|ci\(*|'stack(ops'*|'stack(alerts'*|docs\(agents\)*|docs\(spec\)*|feat\(fleet\):*|fix\(ollama\):*|feat\(cleanup\):*)
       return 0
       ;;
   esac
@@ -72,7 +75,7 @@ ${absorbed:-*(none open — this is the hub + mailer + persist stack)*}
 
 ## Quote contract (the reason this exists)
 
-City-string \`Atlanta, GA\` → \`Austin, TX\` must calculate **and** email at fleet **\$5,650** from 3-leg total **1864** (live ERM_FORM \`quotex.php\`). Outbox letters through 21:00 UTC still greet and body **\$5,750** because the Next/PHP pricing hub is \`2002 Reynolds Dr SW\`.
+City-string \`Atlanta, GA\` → \`Austin, TX\` must calculate **and** email at fleet **\$5,650** from 3-leg total **1864** (live ERM_FORM \`quotex.php\`). Outbox letters through **22:45 UTC** still greet and body **\$5,750** (ERMT Atlanta \`1a030c885aa9f182\`, ERM_FORM Austin \`1a030cd2e2654f25\`) because the Next/PHP pricing hub is \`2002 Reynolds Dr SW\`.
 
 This stack changes only the **pricing** hub:
 
