@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
-# Fold every open PR on the five quote apps into ONE larger PR per repo,
-# then apply the Highland pricing hub + mailer/persist contract.
-# Fewer PRs, not more.
+# One quote-pipeline PR per fleet app (Highland hub + SendGrid + moocow-pg).
+# ERM #425: keep CI/deploy unblockers as their own stacks. Default QUOTE_ONLY=1
+# skips leftover CI/ops/alerts/docs/WIP heads so the quote PR can merge.
 #
-# Absorbs (as of 22:07 UTC; gh pr list is the live source):
-#   ERMT      #779 (quality WIP) + #770 (Gemini CI) + #773 (Copilot runner)
-#   MOO_COW   #1549 (ops-ci leftover stack, was #1545/#1548)
-#             + #1550 (alerts draft leftover, was #1539)
-#   ERM_FORM  #233 (Copilot runner) + #232 (Gemini CI)
-#   ERM/LDMT  no open PRs — still opens the hub + SendGrid + moocow-pg stack
-# #1545/#1548/#1539/#1551 are closed leftovers — do not re-absorb those numbers.
+# Open leftovers this stacker will NOT fold (as of 22:10 UTC):
+#   ERMT      #779 WIP, #770 Gemini CI, #773 Copilot runner
+#   MOO_COW   #1549 ops-ci leftover, #1550 alerts draft leftover
+#   ERM_FORM  #233 Copilot runner, #232 Gemini CI
+#   ERM       #425 agent-policy docs (stacking rule lives here)
+# Set QUOTE_ONLY=0 to absorb those too. #1545/#1548/#1539/#1551 are closed.
 #
 # Does not POST ERM_FORM submit.php. Does not set MOOCOW_SITE_INTAKE_KEY.
 # Does not remount Cloud Run secrets. Does not close absorbed PRs unless
@@ -20,10 +19,21 @@ export HOME="${HOME:-/home/ubuntu}"
 ORG="${GITHUB_ORG:-BRYNTLY-ORG}"
 DEST="${FLEET_SRC:-/tmp/fleet-src}"
 BRANCH="${HUB_BRANCH:-cursor/quote-pipeline-stack-610b}"
-# ERMT first: already serves main; $5750 Atlanta letters are ERMT-From drain.
 REPOS="${REPOS:-ERMT,ERM,LDMT,MOO_COW,ERM_FORM}"
+QUOTE_ONLY="${QUOTE_ONLY:-1}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NEW_HUB='245+N+Highland+Ave+NE+Atlanta+GA'
+
+is_non_quote_pr() {
+  local title="$1"
+  [[ "${QUOTE_ONLY}" == "1" ]] || return 1
+  case "${title}" in
+    *'[WIP]'*|fix\(ci\):*|ci:*|ci\(*|'stack(ops'*|'stack(alerts'*|docs\(agents\)*|docs\(spec\)*)
+      return 0
+      ;;
+  esac
+  return 1
+}
 
 if ! command -v gh >/dev/null; then
   echo "gh is required." >&2
@@ -107,9 +117,12 @@ for repo in "${repo_list[@]}"; do
     rest2="${rest#*$'\t'}"
     title="${rest2%%$'\t'*}"
     url="${rest2#*$'\t'}"
-    # Never restack a PR that is already this stack branch.
     if [[ "${head}" == "${BRANCH}" ]]; then
       echo "SKIP #${num} (already ${BRANCH})"
+      continue
+    fi
+    if is_non_quote_pr "${title}"; then
+      echo "SKIP #${num} (CI/ops/docs leftover — ERM #425 keeps those separate)"
       continue
     fi
     echo "STACK #${num} ${head}  ${title}"

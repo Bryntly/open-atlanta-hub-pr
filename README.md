@@ -2,25 +2,16 @@
 
 City-string `Atlanta, GA` → `Austin, TX` must email fleet **$5,650** from 3-leg total **1864**. Live ERM_FORM `quotex.php` still does that. 21:00 letters still say **$5,750**.
 
-Do **not** open another hub-only micro-PR. Stack every open fleet PR plus the Highland hub into **one** PR per app.
+[ERM #425](https://github.com/BRYNTLY-ORG/ERM/pull/425) says keep CI/deploy leftovers as their own stacks. This kit opens **one quote-only PR per app** (Highland hub + SendGrid + moocow-pg). It does **not** fold MOO_COW #1549/#1550, ERMT #779/#770/#773, ERM_FORM #232/#233, or ERM #425.
+
+Contents-API / `gh` openers now also rewrite `frontend/lib/quote-native.ts` (ERM #316). A `frontend/src/lib`-only apply would have left ERM at $5750.
 
 ## Fastest: stacker (reviewable, no remote bash)
-
-On a machine already logged into `gh` with org write:
 
 ```bash
 gh repo clone Bryntly/open-atlanta-hub-pr /tmp/hub-kit && cd /tmp/hub-kit
 ./stack-fleet-open-prs.sh
 ```
-
-That absorbs:
-
-- ERMT #779 #770 #773
-- MOO_COW leftover stacks #1549 (ops-ci, was #1545/#1548) and #1550 (alerts draft, was #1539)
-- ERM_FORM #233 #232
-- ERM / LDMT (no open PRs — still opens the hub + SendGrid + moocow-pg stack)
-
-#1545 / #1548 / #1539 / #1551 are closed leftovers. Do not re-open those.
 
 Keep `2002 Reynolds Dr SW` as dispatch. Do not use ZIP 30307. Do not set `MOOCOW_SITE_INTAKE_KEY`. Do not POST `https://ermtform.com/submit.php`.
 
@@ -30,7 +21,7 @@ Then merge **ERMT** and:
 gcloud run jobs execute deploy-ermt --project eastern-royal-callcenter --region us-east1
 ```
 
-## Or one Contents-API command (hub only, no PR absorb)
+## Or one Contents-API command (hub only)
 
 ```bash
 gh api repos/Bryntly/open-atlanta-hub-pr/contents/open-highland-hub-pr-via-gh.sh --jq .content | base64 -D | bash
@@ -39,5 +30,3 @@ gh api repos/Bryntly/open-atlanta-hub-pr/contents/open-highland-hub-pr-via-gh.sh
 ## Device login for the Cloud Agent
 
 **C19C-AAF6** at https://github.com/login/device (expires ~22:14 UTC). Do not enter expired `1F75-95C5`.
-
-Remount SendGrid with `--update-secrets` only. Amount-first internals need baked `quote_internal` + key + `INTERNAL_EMAIL`. `Bryntly+ops` OrderDear is not internal.
