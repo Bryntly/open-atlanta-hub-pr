@@ -13,16 +13,31 @@
 # Does not POST ERM_FORM submit.php. Does not set MOOCOW_SITE_INTAKE_KEY.
 # Does not remount Cloud Run secrets. Does not close absorbed PRs unless
 # CLOSE_ABSORBED=1 (comments a supersede note instead).
+#
+# Desktop: if /Users/pacman/GITHUB_ACTUAL exists, this worktrees into
+# FLEET_SRC (/tmp/fleet-src) and will REFUSE in-place checkout -B on
+# those dirty trees (ERM #425). Prefer:
+#   FLEET_ACTUAL=/Users/pacman/GITHUB_ACTUAL ./scripts/stack-fleet-open-prs.sh
 set -euo pipefail
 
 export HOME="${HOME:-/home/ubuntu}"
 ORG="${GITHUB_ORG:-BRYNTLY-ORG}"
 DEST="${FLEET_SRC:-/tmp/fleet-src}"
 BRANCH="${HUB_BRANCH:-cursor/quote-pipeline-stack-610b}"
+# ERMT first: already serves main; $5750 Atlanta letters are ERMT-From drain.
 REPOS="${REPOS:-ERMT,ERM,LDMT,MOO_COW,ERM_FORM}"
 QUOTE_ONLY="${QUOTE_ONLY:-1}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NEW_HUB='245+N+Highland+Ave+NE+Atlanta+GA'
+
+# shellcheck source=lib-fleet-actual.sh
+source "${SCRIPT_DIR}/lib-fleet-actual.sh"
+fleet_detect_actual
+if [[ -n "${FLEET_ACTUAL:-}" ]] && fleet_dest_is_actual_inplace "${DEST}" "${FLEET_ACTUAL}"; then
+  echo "REFUSE: FLEET_SRC=${DEST} is GITHUB_ACTUAL. Worktrees go in /tmp/fleet-src." >&2
+  echo "  FLEET_ACTUAL=${FLEET_ACTUAL} FLEET_SRC=/tmp/fleet-src $0" >&2
+  exit 2
+fi
 
 is_non_quote_pr() {
   local title="$1"
@@ -90,14 +105,10 @@ for repo in "${repo_list[@]}"; do
   [[ -z "${repo}" ]] && continue
   echo "=== ${ORG}/${repo} ==="
   root="${DEST}/${repo}"
-  if [[ ! -d "${root}/.git" ]]; then
-    if ! gh repo clone "${ORG}/${repo}" "${root}"; then
-      echo "FAIL clone ${repo}" >&2
-      failed=$((failed + 1))
-      continue
-    fi
-  else
-    git -C "${root}" fetch origin --prune
+  if ! fleet_prepare_repo "${ORG}" "${repo}" "${DEST}" "${BRANCH}"; then
+    echo "FAIL prepare ${repo}" >&2
+    failed=$((failed + 1))
+    continue
   fi
 
   default="$(gh api "repos/${ORG}/${repo}" --jq .default_branch)"
@@ -117,6 +128,7 @@ for repo in "${repo_list[@]}"; do
     rest2="${rest#*$'\t'}"
     title="${rest2%%$'\t'*}"
     url="${rest2#*$'\t'}"
+    # Never restack a PR that is already this stack branch.
     if [[ "${head}" == "${BRANCH}" ]]; then
       echo "SKIP #${num} (already ${BRANCH})"
       continue
@@ -131,8 +143,7 @@ for repo in "${repo_list[@]}"; do
       continue
     fi
     if git -C "${root}" merge --no-ff --no-edit "pr-${num}"; then
-      absorbed_md="${absorbed_md}- [#${num}](${url}) ${title}"$'
-'
+      absorbed_md="${absorbed_md}- [#${num}](${url}) ${title}"$'{newline}'
       absorbed_nums="${absorbed_nums} ${num}"
     else
       echo "CONFLICT #${num} — leaving it out of the stack" >&2

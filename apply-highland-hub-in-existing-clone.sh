@@ -11,8 +11,15 @@ BRANCH="${HUB_BRANCH:-cursor/atlanta-hub-highland-610b}"
 ROOT="${1:-.}"
 
 cd "${ROOT}"
-if [[ ! -d .git ]]; then
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo "Run this from a git clone (ERMT first), or pass the clone path." >&2
+  exit 2
+fi
+
+here="$(pwd -P)"
+if [[ "${here}" == *"/GITHUB_ACTUAL/"* && "${ALLOW_ACTUAL_INPLACE:-0}" != "1" ]]; then
+  echo "REFUSE: ${here} is a GITHUB_ACTUAL checkout (ERM #425 dirty trees)." >&2
+  echo "  FLEET_ACTUAL=/Users/pacman/GITHUB_ACTUAL ./scripts/stack-from-github-actual.sh" >&2
   exit 2
 fi
 
@@ -23,24 +30,19 @@ echo "REPO ${repo_name}  ${remote_url}"
 git fetch origin main
 git checkout -B "${BRANCH}" origin/main
 
-mapfile -t files < <(git grep -l 'const ATLANTA_HUB_ADDRESS' -- '*.ts' '*.tsx' || true)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+mapfile -t files < <(git grep -l -e 'const ATLANTA_HUB_ADDRESS' -e '2002+Reynolds+Dr+SW+Atlanta+GA' -e '2002 Reynolds Dr SW' -- '*.ts' '*.tsx' '*.php' || true)
 if [[ "${#files[@]}" -eq 0 ]]; then
-  echo "No ATLANTA_HUB_ADDRESS in this clone." >&2
+  echo "No pricing hub literals in this clone." >&2
   exit 3
 fi
 
 changed=0
 for path in "${files[@]}"; do
-  current="$(sed -n 's/.*const ATLANTA_HUB_ADDRESS = "\([^"]*\)".*/\1/p' "${path}" | head -1)"
-  echo "FILE ${path}  current=${current}"
-  if [[ "${current}" == "${NEW_HUB}" ]]; then
-    echo "OK   already Highland-class"
-    continue
+  echo "FILE ${path}"
+  if python3 "${SCRIPT_DIR}/rewrite-atlanta-hub.py" "${path}"; then
+    changed=1
   fi
-  perl -pi -e "s/const ATLANTA_HUB_ADDRESS = \"[^\"]*\"/const ATLANTA_HUB_ADDRESS = \"${NEW_HUB}\"/" "${path}"
-  after="$(sed -n 's/.*const ATLANTA_HUB_ADDRESS = "\([^"]*\)".*/\1/p' "${path}" | head -1)"
-  echo "PATCH ${path}: ${current} -> ${after}"
-  changed=1
 done
 
 echo "--- remaining Reynolds pricing literals (should be none) ---"
